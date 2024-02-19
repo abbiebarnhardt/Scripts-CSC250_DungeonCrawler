@@ -13,7 +13,6 @@ public class Player : MonoBehaviour
     private float speed = 5.0f;
     private bool amMoving = false;
     private bool amAtMiddleOfRoom = false;
-    private int count = 0;
 
     private void turnOffExits()
     {
@@ -21,7 +20,6 @@ public class Player : MonoBehaviour
         this.southExit.gameObject.SetActive(false);
         this.eastExit.gameObject.SetActive(false);
         this.westExit.gameObject.SetActive(false);
-
     }
 
     private void turnOnExits()
@@ -39,26 +37,25 @@ public class Player : MonoBehaviour
         {
             if (MySingleton.currentDirection.Equals("south"))
             {
-                this.gameObject.transform.position = this.southExit.transform.position;
+                this.gameObject.transform.position = this.northExit.transform.position;
                 this.amAtMiddleOfRoom = false;
             }
             else if (MySingleton.currentDirection.Equals("north"))
             {
-                this.gameObject.transform.position = this.northExit.transform.position;
+                this.gameObject.transform.position = this.southExit.transform.position;
                 this.amAtMiddleOfRoom = false;
             }
             else if (MySingleton.currentDirection.Equals("east"))
             {
-                this.gameObject.transform.position = this.eastExit.transform.position;
+                this.gameObject.transform.position = this.westExit.transform.position;
                 this.amAtMiddleOfRoom = false;
             }
             else if (MySingleton.currentDirection.Equals("west"))
             {
-                this.gameObject.transform.position = this.westExit.transform.position;
+                this.gameObject.transform.position = this.eastExit.transform.position;
                 this.amAtMiddleOfRoom = false;
             }
         }
-        //MySingleton.currentDirection = "?";
       }
 
     private void OnTriggerEnter(Collider other)
@@ -66,44 +63,20 @@ public class Player : MonoBehaviour
         if (other.CompareTag("door"))
         {
             EditorSceneManager.LoadScene("Scene One");
-            if (MySingleton.currentDirection.Equals("west"))
-            {
-                MySingleton.currentDirection = "east";
-                MySingleton.oldDirection = "west";
-            }
-
-            if (MySingleton.currentDirection.Equals("east"))
-            {
-                MySingleton.currentDirection = "west";
-                MySingleton.oldDirection = "east";
-            }
-
-            if (MySingleton.currentDirection.Equals("south"))
-            {
-                MySingleton.currentDirection = "north";
-                MySingleton.oldDirection = "south";
-            }
-
-            if (MySingleton.currentDirection.Equals("north"))
-            {
-                MySingleton.currentDirection = "south";
-                MySingleton.oldDirection = "north";
-            }
         }
         else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
         {
             this.amAtMiddleOfRoom = true;
         }
+
     }
 
-
-    // Update is called once per frame
     void Update()
     {
         if (this.amAtMiddleOfRoom)
         {
             amMoving = false;
-            MySingleton.currentDirection = "?";
+            MySingleton.currentDirection =  "?";
         }
 
         if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving)
@@ -146,56 +119,28 @@ public class Player : MonoBehaviour
             this.amAtMiddleOfRoom = false;
         }
 
-        //make the player move in the current direction
 
         if (MySingleton.currentDirection.Equals("north"))
         {
-            if (MySingleton.oldDirection.Equals("south"))
-            {
-                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
-            }
-            else
-            {
+
                 this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.northExit.transform.position, this.speed * Time.deltaTime);
-            }
         }
 
         if (MySingleton.currentDirection.Equals("south"))
         {
-            if (MySingleton.oldDirection.Equals("north"))
-            {
-                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
-            }
-            else
-            {
+
                 this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.southExit.transform.position, this.speed * Time.deltaTime);
-            }
         }
 
         if (MySingleton.currentDirection.Equals("west"))
         {
-            if (MySingleton.oldDirection.Equals("east"))
-            {
-                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
-            }
-
-            else
-            {
                 this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.westExit.transform.position, this.speed * Time.deltaTime);
-            }
+            
         }
 
         if (MySingleton.currentDirection.Equals("east"))
         {
-            if (MySingleton.oldDirection.Equals("west"))
-            {
-                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
-            }
-
-            else
-            {
                 this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.eastExit.transform.position, this.speed * Time.deltaTime);
-            }
         }
     }
 }

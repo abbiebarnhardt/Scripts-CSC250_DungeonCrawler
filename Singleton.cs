@@ -5,5 +5,4 @@ using UnityEngine;
 public class MySingleton
 {
     public static string currentDirection = "?";
-    public static string oldDirection = "";
 }
