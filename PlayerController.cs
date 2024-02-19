@@ -5,38 +5,197 @@ using UnityEditor.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    public GameObject destinationGO;
-    public GameObject player;
-    public float speed = 1.0f;
-    private Transform target;
+    public GameObject northExit;
+    public GameObject southExit;
+    public GameObject eastExit;
+    public GameObject westExit;
+    public GameObject middleOfRoom;
+    private float speed = 5.0f;
+    private bool amMoving = false;
+    private bool amAtMiddleOfRoom = false;
+    private int count = 0;
 
-    void Awake()
+    private void turnOffExits()
     {
-        DontDestroyOnLoad(player);
-        DontDestroyOnLoad(destinationGO);
+        this.northExit.gameObject.SetActive(false);
+        this.southExit.gameObject.SetActive(false);
+        this.eastExit.gameObject.SetActive(false);
+        this.westExit.gameObject.SetActive(false);
+
     }
+
+    private void turnOnExits()
+    {
+        this.northExit.gameObject.SetActive(true);
+        this.southExit.gameObject.SetActive(true);
+        this.eastExit.gameObject.SetActive(true);
+        this.westExit.gameObject.SetActive(true);
+    }
+
     void Start()
     {
-        target = destinationGO.transform;
+        this.turnOffExits();
+        if (!MySingleton.currentDirection.Equals("?"))
+        {
+            if (MySingleton.currentDirection.Equals("south"))
+            {
+                this.gameObject.transform.position = this.southExit.transform.position;
+                this.amAtMiddleOfRoom = false;
+            }
+            else if (MySingleton.currentDirection.Equals("north"))
+            {
+                this.gameObject.transform.position = this.northExit.transform.position;
+                this.amAtMiddleOfRoom = false;
+            }
+            else if (MySingleton.currentDirection.Equals("east"))
+            {
+                this.gameObject.transform.position = this.eastExit.transform.position;
+                this.amAtMiddleOfRoom = false;
+            }
+            else if (MySingleton.currentDirection.Equals("west"))
+            {
+                this.gameObject.transform.position = this.westExit.transform.position;
+                this.amAtMiddleOfRoom = false;
+            }
+        }
+        //MySingleton.currentDirection = "?";
+      }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("door"))
+        {
+            EditorSceneManager.LoadScene("Scene One");
+            if (MySingleton.currentDirection.Equals("west"))
+            {
+                MySingleton.currentDirection = "east";
+                MySingleton.oldDirection = "west";
+            }
+
+            if (MySingleton.currentDirection.Equals("east"))
+            {
+                MySingleton.currentDirection = "west";
+                MySingleton.oldDirection = "east";
+            }
+
+            if (MySingleton.currentDirection.Equals("south"))
+            {
+                MySingleton.currentDirection = "north";
+                MySingleton.oldDirection = "south";
+            }
+
+            if (MySingleton.currentDirection.Equals("north"))
+            {
+                MySingleton.currentDirection = "south";
+                MySingleton.oldDirection = "north";
+            }
+        }
+        else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
+        {
+            this.amAtMiddleOfRoom = true;
+        }
     }
 
+
     // Update is called once per frame
-    private void Update()
+    void Update()
     {
-        var step = speed * Time.deltaTime;
-        if (target != null)
+        if (this.amAtMiddleOfRoom)
         {
-            
-            if (((transform.position.x > target.transform.position.x) || (transform.position.x < target.transform.position.x)) && ((transform.position.z > target.transform.position.z) || (transform.position.z < target.transform.position.z)))
+            amMoving = false;
+            MySingleton.currentDirection = "?";
+        }
+
+        if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving)
+        {
+            this.amMoving = true;
+            this.turnOnExits();
+            MySingleton.currentDirection = "north";
+            Quaternion target = Quaternion.Euler(33, -125, 33);
+            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
+            this.amAtMiddleOfRoom = false;
+        }
+
+        if (Input.GetKeyUp(KeyCode.DownArrow) && !this.amMoving)
+        {
+            this.amMoving = true;
+            this.turnOnExits();
+            MySingleton.currentDirection = "south";
+            Quaternion target = Quaternion.Euler(33, 45, 33);
+            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
+            this.amAtMiddleOfRoom = false;
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftArrow) && !this.amMoving)
+        {
+            this.amMoving = true;
+            this.turnOnExits();
+            MySingleton.currentDirection = "west";
+            Quaternion target = Quaternion.Euler(26, 143, 30);
+            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
+            this.amAtMiddleOfRoom = false;
+        }
+
+        if (Input.GetKeyUp(KeyCode.RightArrow) && !this.amMoving)
+        {
+            this.amMoving = true;
+            this.turnOnExits();
+            MySingleton.currentDirection = "east";
+            Quaternion target = Quaternion.Euler(33, -33, 33);
+            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
+            this.amAtMiddleOfRoom = false;
+        }
+
+        //make the player move in the current direction
+
+        if (MySingleton.currentDirection.Equals("north"))
+        {
+            if (MySingleton.oldDirection.Equals("south"))
             {
-                transform.position = Vector3.MoveTowards(transform.position, target.position, step);
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
+            }
+            else
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.northExit.transform.position, this.speed * Time.deltaTime);
             }
         }
 
-        else
+        if (MySingleton.currentDirection.Equals("south"))
         {
-            transform.position = Vector3.MoveTowards(transform.position, new Vector3(0f, 0f, 0f), step);
+            if (MySingleton.oldDirection.Equals("north"))
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
+            }
+            else
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.southExit.transform.position, this.speed * Time.deltaTime);
+            }
+        }
+
+        if (MySingleton.currentDirection.Equals("west"))
+        {
+            if (MySingleton.oldDirection.Equals("east"))
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
+            }
+
+            else
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.westExit.transform.position, this.speed * Time.deltaTime);
+            }
+        }
+
+        if (MySingleton.currentDirection.Equals("east"))
+        {
+            if (MySingleton.oldDirection.Equals("west"))
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.middleOfRoom.transform.position, this.speed * Time.deltaTime);
+            }
+
+            else
+            {
+                this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.eastExit.transform.position, this.speed * Time.deltaTime);
+            }
         }
     }
-
 }
