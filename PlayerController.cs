@@ -32,29 +32,43 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        Rigidbody rb = this.gameObject.GetComponent<Rigidbody>();
         this.turnOffExits();
+        this.middleOfRoom.SetActive(false);
+
         if (!MySingleton.currentDirection.Equals("?"))
         {
+            this.amMoving = true;
+            this.middleOfRoom.SetActive(true);
+            this.amAtMiddleOfRoom = false;
+
             if (MySingleton.currentDirection.Equals("south"))
             {
                 this.gameObject.transform.position = this.northExit.transform.position;
-                this.amAtMiddleOfRoom = false;
+                this.gameObject.transform.LookAt(this.southExit.transform.position);
             }
             else if (MySingleton.currentDirection.Equals("north"))
             {
                 this.gameObject.transform.position = this.southExit.transform.position;
-                this.amAtMiddleOfRoom = false;
+                this.gameObject.transform.LookAt(this.northExit.transform.position);
             }
             else if (MySingleton.currentDirection.Equals("east"))
             {
                 this.gameObject.transform.position = this.westExit.transform.position;
-                this.amAtMiddleOfRoom = false;
+                this.gameObject.transform.LookAt(this.eastExit.transform.position);
             }
             else if (MySingleton.currentDirection.Equals("west"))
             {
                 this.gameObject.transform.position = this.eastExit.transform.position;
-                this.amAtMiddleOfRoom = false;
+                this.gameObject.transform.LookAt(this.westExit.transform.position);
             }
+        }
+        else
+        {
+            this.amMoving = false;
+            this.amAtMiddleOfRoom = true;
+            this.middleOfRoom.SetActive(false);
+            this.gameObject.transform.position = this.middleOfRoom.transform.position;
         }
       }
 
@@ -66,57 +80,49 @@ public class Player : MonoBehaviour
         }
         else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
         {
+            this.middleOfRoom.SetActive(false);
+            this.turnOnExits();
             this.amAtMiddleOfRoom = true;
+            this.amMoving = false;
+            MySingleton.currentDirection = "middle";
         }
 
     }
 
     void Update()
     {
-        if (this.amAtMiddleOfRoom)
-        {
-            amMoving = false;
-            MySingleton.currentDirection =  "?";
-        }
 
-        if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving)
+        if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving && MySingleton.getExits()[1] ==0)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "north";
-            Quaternion target = Quaternion.Euler(33, -125, 33);
-            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
-            this.amAtMiddleOfRoom = false;
+            this.gameObject.transform.LookAt(this.northExit.transform.position);
         }
 
-        if (Input.GetKeyUp(KeyCode.DownArrow) && !this.amMoving)
+        if (Input.GetKeyUp(KeyCode.DownArrow) && !this.amMoving && MySingleton.getExits()[0] ==0)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "south";
-            Quaternion target = Quaternion.Euler(33, 45, 33);
-            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
-            this.amAtMiddleOfRoom = false;
+            this.gameObject.transform.LookAt(this.southExit.transform.position);
         }
 
-        if (Input.GetKeyUp(KeyCode.LeftArrow) && !this.amMoving)
+        if (Input.GetKeyUp(KeyCode.LeftArrow) && !this.amMoving && MySingleton.getExits()[3] ==0)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "west";
-            Quaternion target = Quaternion.Euler(26, 143, 30);
-            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
-            this.amAtMiddleOfRoom = false;
+            this.gameObject.transform.LookAt(this.westExit.transform.position );
+
         }
 
-        if (Input.GetKeyUp(KeyCode.RightArrow) && !this.amMoving)
+        if (Input.GetKeyUp(KeyCode.RightArrow) && !this.amMoving && MySingleton.getExits()[2] ==0)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "east";
-            Quaternion target = Quaternion.Euler(33, -33, 33);
-            this.gameObject.transform.rotation = Quaternion.Slerp(transform.rotation, target, 5.0f);
-            this.amAtMiddleOfRoom = false;
+            this.gameObject.transform.LookAt(this.eastExit.transform.position);
         }
 
 
