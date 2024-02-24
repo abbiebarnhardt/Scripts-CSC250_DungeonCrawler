@@ -76,10 +76,38 @@ public class Player : MonoBehaviour
     {
         if (other.CompareTag("door"))
         {
+            
+            MySingleton.oldDirection = MySingleton.currentDirection;
+            if (MySingleton.currentDirection.Equals("north"))
+            {
+                MySingleton.doorEntered = "north";
+                MySingleton.doorExited = "south";
+                MySingleton.chosen = true;
+            }
+            if (MySingleton.currentDirection.Equals("south"))
+            {
+                MySingleton.doorEntered = "south";
+                MySingleton.doorExited = "north";
+                MySingleton.chosen = true;
+            }
+            if (MySingleton.currentDirection.Equals("east"))
+            {
+                MySingleton.doorEntered = "east";
+                MySingleton.doorExited = "west";
+                MySingleton.chosen = true;
+            }
+            if (MySingleton.currentDirection.Equals("west"))
+            {
+                MySingleton.doorEntered = "west";
+                MySingleton.doorExited = "east";
+                MySingleton.chosen = true;
+            }
+
             EditorSceneManager.LoadScene("Scene One");
         }
         else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
         {
+            MySingleton.oldDirection = MySingleton.currentDirection;
             this.middleOfRoom.SetActive(false);
             this.turnOnExits();
             this.amAtMiddleOfRoom = true;
@@ -91,38 +119,42 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-
-        if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving && MySingleton.getExits()[1] ==0)
+        MySingleton.chosen = false;
+        if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving && Room.northOpen)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "north";
             this.gameObject.transform.LookAt(this.northExit.transform.position);
+            MySingleton.chosen = true;
         }
 
-        if (Input.GetKeyUp(KeyCode.DownArrow) && !this.amMoving && MySingleton.getExits()[0] ==0)
+        if (Input.GetKeyUp(KeyCode.DownArrow) && !this.amMoving && Room.southOpen)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "south";
             this.gameObject.transform.LookAt(this.southExit.transform.position);
+            MySingleton.chosen = true;
         }
 
-        if (Input.GetKeyUp(KeyCode.LeftArrow) && !this.amMoving && MySingleton.getExits()[3] ==0)
+        if (Input.GetKeyUp(KeyCode.LeftArrow) && !this.amMoving && Room.westOpen)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "west";
             this.gameObject.transform.LookAt(this.westExit.transform.position );
+            MySingleton.chosen = true;
 
         }
 
-        if (Input.GetKeyUp(KeyCode.RightArrow) && !this.amMoving && MySingleton.getExits()[2] ==0)
+        if (Input.GetKeyUp(KeyCode.RightArrow) && !this.amMoving && Room.eastOpen)
         {
             this.amMoving = true;
             this.turnOnExits();
             MySingleton.currentDirection = "east";
             this.gameObject.transform.LookAt(this.eastExit.transform.position);
+            MySingleton.chosen = true;
         }
 
 
