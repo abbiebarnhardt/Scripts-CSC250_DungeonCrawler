@@ -36,21 +36,22 @@ public class Room
         return false;
     }
 
-    public void addExit(string direction, Room destinationRoom)
+
+    public void addExit(string direction, Room destinationRoom, bool foodOn)
     {
-            Exit e = new Exit(direction, destinationRoom);
-            if (direction.Equals("north"))
-            {
-                this.theExits[0] = e;
-            }
-            if (direction.Equals("south"))
-            {
-                this.theExits[1] = e;
-            }
-            if (direction.Equals("east"))
-            {
-                this.theExits[3] = e;
-            }
+        Exit e = new Exit(direction, destinationRoom, foodOn);
+        if (direction.Equals("north"))
+        {
+            this.theExits[0] = e;
+        }
+        if (direction.Equals("south"))
+        {
+            this.theExits[1] = e;
+        }
+        if (direction.Equals("east"))
+        {
+            this.theExits[3] = e;
+        }
         if (direction.Equals("west"))
         {
             this.theExits[2] = e;
@@ -64,4 +65,5 @@ public class Room
     {
         return this.name;
     }
+
 }

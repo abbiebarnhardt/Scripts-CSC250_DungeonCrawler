@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.SceneManagement;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private float speed = 5.0f;
     private bool amMoving = false;
     private bool amAtMiddleOfRoom = false;
+    public TextMeshProUGUI countFood;
 
     private void turnOffExits()
     {
@@ -31,10 +33,18 @@ public class PlayerController : MonoBehaviour
         this.westExit.gameObject.SetActive(true);
     }
 
+    void SetCountFood()
+    {
+        countFood.text = "Count: " + MySingleton.countFood.ToString();
+    }
+
     void Start()
     {
         this.turnOffExits();
         this.middleOfTheRoom.SetActive(false);
+        SetCountFood();
+
+
 
         if (!MySingleton.currentDirection.Equals("?"))
         {
@@ -78,17 +88,47 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("door"))
+        if (other.CompareTag("northFood"))
         {
-            print("Loading scene");
+            MySingleton.thePlayer.getCurrentRoom().getTheExits()[0].setFood(false);
+            other.gameObject.SetActive(false);
+            MySingleton.countFood++;
+            SetCountFood();
+        }
+        else if (other.CompareTag("eastFood"))
+        {
+            MySingleton.thePlayer.getCurrentRoom().getTheExits()[3].setFood(false);
+            other.gameObject.SetActive(false);
+            MySingleton.countFood++;
+            SetCountFood();
+        }
+
+        else if (other.CompareTag("southFood"))
+        {
+            MySingleton.thePlayer.getCurrentRoom().getTheExits()[1].setFood(false);
+            other.gameObject.SetActive(false);
+            MySingleton.countFood++;
+            SetCountFood();
+        }
+
+        else if (other.CompareTag("westFood"))
+        {
+            MySingleton.thePlayer.getCurrentRoom().getTheExits()[2].setFood(false);
+            other.gameObject.SetActive(false);
+            MySingleton.countFood++;
+            SetCountFood();
+        }
+
+        else if (other.CompareTag("door"))
+        {
             EditorSceneManager.LoadScene("Scene One");
         }
+
         else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
         {
             this.middleOfTheRoom.SetActive(false);
             this.turnOnExits();
 
-            print("middle");
             this.amAtMiddleOfRoom = true;
             this.amMoving = false;
             MySingleton.currentDirection = "middle";
