@@ -1,8 +1,9 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.SceneManagement;
-using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class PlayerController : MonoBehaviour
     private float speed = 5.0f;
     private bool amMoving = false;
     private bool amAtMiddleOfRoom = false;
-    public TextMeshProUGUI countFood;
+    public GameObject playerObject;
 
     private void turnOffExits()
     {
@@ -33,23 +34,20 @@ public class PlayerController : MonoBehaviour
         this.westExit.gameObject.SetActive(true);
     }
 
-    void SetCountFood()
-    {
-        countFood.text = "Count: " + MySingleton.countFood.ToString();
-    }
 
     void Start()
     {
         this.turnOffExits();
+
+
         this.middleOfTheRoom.SetActive(false);
-        SetCountFood();
-
-
 
         if (!MySingleton.currentDirection.Equals("?"))
         {
-            MySingleton.thePlayer.setCurrentRoom(MySingleton.targetExit.getDestinationRoom());
+
             this.amMoving = true;
+
+
             this.middleOfTheRoom.SetActive(true);
             this.amAtMiddleOfRoom = false;
 
@@ -58,19 +56,16 @@ public class PlayerController : MonoBehaviour
                 this.gameObject.transform.position = this.southExit.transform.position;
                 this.gameObject.transform.LookAt(this.northExit.transform.position);
             }
-
             else if (MySingleton.currentDirection.Equals("south"))
             {
                 this.gameObject.transform.position = this.northExit.transform.position;
                 this.gameObject.transform.LookAt(this.southExit.transform.position);
             }
-
             else if (MySingleton.currentDirection.Equals("west"))
             {
                 this.gameObject.transform.position = this.eastExit.transform.position;
                 this.gameObject.transform.LookAt(this.westExit.transform.position);
             }
-
             else if (MySingleton.currentDirection.Equals("east"))
             {
                 this.gameObject.transform.position = this.westExit.transform.position;
@@ -84,51 +79,38 @@ public class PlayerController : MonoBehaviour
             this.middleOfTheRoom.SetActive(false);
             this.gameObject.transform.position = this.middleOfTheRoom.transform.position;
         }
+
     }
+
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("northFood"))
+        if (other.CompareTag("door") && SceneManager.GetActiveScene().name.Equals("Dungeon Scene"))
         {
-            MySingleton.thePlayer.getCurrentRoom().getTheExits()[0].setFood(false);
-            other.gameObject.SetActive(false);
-            MySingleton.countFood++;
-            SetCountFood();
-        }
-        else if (other.CompareTag("eastFood"))
-        {
-            MySingleton.thePlayer.getCurrentRoom().getTheExits()[3].setFood(false);
-            other.gameObject.SetActive(false);
-            MySingleton.countFood++;
-            SetCountFood();
-        }
+            print("Loading scene");
 
-        else if (other.CompareTag("southFood"))
-        {
-            MySingleton.thePlayer.getCurrentRoom().getTheExits()[1].setFood(false);
-            other.gameObject.SetActive(false);
-            MySingleton.countFood++;
-            SetCountFood();
+            MySingleton.thePlayer.getCurrentRoom().removePlayer(MySingleton.currentDirection);
+            EditorSceneManager.LoadScene("Dungeon Scene");
         }
-
-        else if (other.CompareTag("westFood"))
+        else if (other.CompareTag("power-pellet"))
         {
-            MySingleton.thePlayer.getCurrentRoom().getTheExits()[2].setFood(false);
+
             other.gameObject.SetActive(false);
-            MySingleton.countFood++;
-            SetCountFood();
-        }
+            Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
+            theCurrentRoom.removePellet(other.GetComponent<pelletController>().direction);
+            playerObject.transform.position = new Vector3(-12.9f, 23.3f, 7.8f);
+            MySingleton.currentDirection = "?";
 
-        else if (other.CompareTag("door"))
-        {
-            EditorSceneManager.LoadScene("Scene One");
+            EditorSceneManager.LoadScene("Fight Scene");
         }
 
         else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
         {
+
             this.middleOfTheRoom.SetActive(false);
             this.turnOnExits();
 
+            print("middle");
             this.amAtMiddleOfRoom = true;
             this.amMoving = false;
             MySingleton.currentDirection = "middle";
@@ -143,8 +125,6 @@ public class PlayerController : MonoBehaviour
             this.turnOnExits();
             MySingleton.currentDirection = "north";
             this.gameObject.transform.LookAt(this.northExit.transform.position);
-
-            MySingleton.setTargetExit(MySingleton.thePlayer.getCurrentRoom().getTheExits()[0]);
         }
 
         if (Input.GetKeyUp(KeyCode.DownArrow) && !this.amMoving && MySingleton.thePlayer.getCurrentRoom().hasExit("south"))
@@ -153,8 +133,6 @@ public class PlayerController : MonoBehaviour
             this.turnOnExits();
             MySingleton.currentDirection = "south";
             this.gameObject.transform.LookAt(this.southExit.transform.position);
-
-            MySingleton.setTargetExit(MySingleton.thePlayer.getCurrentRoom().getTheExits()[1]);
         }
 
         if (Input.GetKeyUp(KeyCode.LeftArrow) && !this.amMoving && MySingleton.thePlayer.getCurrentRoom().hasExit("west"))
@@ -163,8 +141,6 @@ public class PlayerController : MonoBehaviour
             this.turnOnExits();
             MySingleton.currentDirection = "west";
             this.gameObject.transform.LookAt(this.westExit.transform.position);
-
-            MySingleton.setTargetExit(MySingleton.thePlayer.getCurrentRoom().getTheExits()[2]);
         }
 
         if (Input.GetKeyUp(KeyCode.RightArrow) && !this.amMoving && MySingleton.thePlayer.getCurrentRoom().hasExit("east"))
@@ -173,8 +149,6 @@ public class PlayerController : MonoBehaviour
             this.turnOnExits();
             MySingleton.currentDirection = "east";
             this.gameObject.transform.LookAt(this.eastExit.transform.position);
-
-            MySingleton.setTargetExit(MySingleton.thePlayer.getCurrentRoom().getTheExits()[3]);
 
         }
 

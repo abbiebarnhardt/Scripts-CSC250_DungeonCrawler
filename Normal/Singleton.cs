@@ -7,8 +7,31 @@ public class MySingleton
     public static string currentDirection = "?";
     public static Player thePlayer;
     public static Dungeon theDungeon = MySingleton.generateDungeon();
-    public static Exit targetExit;
-    public static int countFood;
+
+    public static string flipDirection(string direction)
+    {
+        if (direction.Equals("north"))
+        {
+            return "south";
+        }
+        else if (direction.Equals("south"))
+        {
+            return "north";
+        }
+        else if (direction.Equals("east"))
+        {
+            return "west";
+        }
+        else if (direction.Equals("west"))
+        {
+            return "east";
+        }
+        else
+        {
+            Debug.Log(direction + " is not a legal direction in flipDirection inside of MySingleton");
+            return "N/A";
+        }
+    }
 
     private static Dungeon generateDungeon()
     {
@@ -19,16 +42,16 @@ public class MySingleton
         Room r5 = new Room("R5");
         Room r6 = new Room("R6");
 
-        r1.addExit("north", r2, true);
-        r2.addExit("south", r1, true);
-        r2.addExit("north", r3, true);
-        r3.addExit("south", r2, true);
-        r3.addExit("west", r4, true);
-        r3.addExit("north", r6, true);
-        r3.addExit("east", r5, true);
-        r4.addExit("east", r3, true);
-        r5.addExit("west", r3, true);
-        r6.addExit("south", r3, true);
+        r1.addExit("north", r2);
+        r2.addExit("south", r1);
+        r2.addExit("north", r3);
+        r3.addExit("south", r2);
+        r3.addExit("west", r4);
+        r3.addExit("north", r6);
+        r3.addExit("east", r5);
+        r4.addExit("east", r3);
+        r5.addExit("west", r3);
+        r6.addExit("south", r3);
 
         Dungeon theDungeon = new Dungeon("the cross");
         theDungeon.setStartRoom(r1);
@@ -36,10 +59,4 @@ public class MySingleton
         theDungeon.addPlayer(MySingleton.thePlayer);
         return theDungeon;
     }
-
-    public static void setTargetExit(Exit goalExit)
-    {
-        targetExit = goalExit; 
-    }
-
 }

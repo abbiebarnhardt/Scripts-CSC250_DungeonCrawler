@@ -6,18 +6,11 @@ public class Exit
 {
     private string direction;
     private Room destinationRoom;
-    private bool foodOn = true;
 
-    public Exit(string direction, Room destinationRoom, bool foodOn)
+    public Exit(string direction, Room destinationRoom)
     {
         this.direction = direction;
         this.destinationRoom = destinationRoom;
-        this.foodOn = foodOn;
-    }
-
-    public string getDirection()
-    {
-        return this.direction;
     }
 
     public Room getDestinationRoom()
@@ -25,13 +18,8 @@ public class Exit
         return this.destinationRoom;
     }
 
-    public void setFood(bool foodOn)
+    public string getDirection()
     {
-        this.foodOn = foodOn;
-    }
-
-    public bool getFoodOn()
-    {
-        return this.foodOn;
+        return this.direction;
     }
 }

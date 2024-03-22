@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,14 +19,10 @@ public class Dungeon
     {
         this.startRoom = r;
     }
+
     public void addPlayer(Player thePlayer)
     {
         this.thePlayer = thePlayer;
         this.startRoom.addPlayer(this.thePlayer);
-    }
-
-    public Room getStartRoom()
-    {
-        return startRoom;
     }
 }
