@@ -12,6 +12,7 @@ public class DungeonController : MonoBehaviour
     {
         this.setDoors();
         this.setPellets();
+
     }
 
 
