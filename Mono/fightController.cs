@@ -7,18 +7,21 @@ using UnityEditor.SceneManagement;
 public class fightController : MonoBehaviour
 {
     public GameObject hero_GO, monster_GO, fightSpot, heroSpot, monsterSpot;
-    public TextMeshProUGUI hero_hp_TMP, monster_hp_TMP, winner_TMP;
+    public TextMeshProUGUI hero_hp_TMP, monster_hp_TMP, winner_TMP, commentary_TMP;
     private int heroHitPoints = 10;
     private static int monsterHitPoints = 10;
     private int heroRoll, monsterRoll;
     private int turn = 0; // even is hero, odd is monster
     private string stringTurn;
+    int wait = 0;
+
 
     // Start is called before the first frame update
     void Start()
     {
         setHPText();
         winner_TMP.enabled = false;
+        commentary_TMP.enabled = true;
     }
 
     // Update is called once per frame
@@ -34,12 +37,18 @@ public class fightController : MonoBehaviour
             {
                 stringTurn = "hero";
 
+                commentary_TMP.text = "It's the hero's turn...";
+
                 if (hero_GO.transform.position != fightSpot.transform.position)
                 {
                     hero_GO.transform.position = Vector3.MoveTowards(hero_GO.transform.position, fightSpot.transform.position, 10f * Time.deltaTime);
                 }
-                else
+                else if (hero_GO.transform.position == fightSpot.transform.position)
                 {
+                    for (int i = 0; i <100; i++)
+                    {
+                        wait++;
+                    }
                     hit(stringTurn);
                     turn++;
                     hero_GO.transform.position = heroSpot.transform.position;
@@ -50,6 +59,8 @@ public class fightController : MonoBehaviour
             if (turn % 2 == 1)
             {
                 stringTurn = "monster";
+
+                commentary_TMP.text = "It's the monster's turn...";
 
                 if (monster_GO.transform.position != fightSpot.transform.position)
                 {
@@ -69,6 +80,7 @@ public class fightController : MonoBehaviour
 
         else if (heroHitPoints <= 0)
         {
+            commentary_TMP.enabled = false;
             hero_GO.SetActive(false);
             winner_TMP.text = "The monster wins! <br> Game Over";
             winner_TMP.enabled = true;
@@ -76,6 +88,7 @@ public class fightController : MonoBehaviour
 
         else if (monsterHitPoints <= 0)
         {
+            commentary_TMP.enabled = false;
             monster_GO.SetActive(false);
             winner_TMP.text = "The hero wins!";
             winner_TMP.enabled = true;
@@ -92,11 +105,17 @@ public class fightController : MonoBehaviour
         if (heroRoll > monsterRoll && attackingPlayer.Equals("hero"))
         {
             monsterHitPoints = monsterHitPoints - Random.Range(1, 6);
+            commentary_TMP.text = "The hero hit the monster!";
         }
 
         else if (heroRoll < monsterRoll && attackingPlayer.Equals("monster"))
         {
             heroHitPoints = heroHitPoints - Random.Range(1, 6);
+            commentary_TMP.text = "The monster hit the hero!";
+        }
+        else
+        {
+            commentary_TMP.text = "The hit misses!";
         }
     }
 
@@ -113,5 +132,6 @@ public class fightController : MonoBehaviour
         monsterHitPoints = 10;
         EditorSceneManager.LoadScene("DungeonRoom");
     }
+
 
 }
