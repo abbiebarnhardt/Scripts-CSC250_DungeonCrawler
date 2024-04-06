@@ -13,7 +13,7 @@ public class fightController : MonoBehaviour
     private int heroRoll, monsterRoll;
     private int turn = 0; // even is hero, odd is monster
     private string stringTurn;
-    int wait = 0;
+    public static string lastFightOutcome = "";
 
 
     // Start is called before the first frame update
@@ -45,10 +45,6 @@ public class fightController : MonoBehaviour
                 }
                 else if (hero_GO.transform.position == fightSpot.transform.position)
                 {
-                    for (int i = 0; i <100; i++)
-                    {
-                        wait++;
-                    }
                     hit(stringTurn);
                     turn++;
                     hero_GO.transform.position = heroSpot.transform.position;
@@ -82,8 +78,10 @@ public class fightController : MonoBehaviour
         {
             commentary_TMP.enabled = false;
             hero_GO.SetActive(false);
-            winner_TMP.text = "The monster wins! <br> Game Over";
+            winner_TMP.text = "The monster wins!";
             winner_TMP.enabled = true;
+            lastFightOutcome = "monster";
+            StartCoroutine(MyCoroutine());
         }
 
         else if (monsterHitPoints <= 0)
@@ -92,6 +90,7 @@ public class fightController : MonoBehaviour
             monster_GO.SetActive(false);
             winner_TMP.text = "The hero wins!";
             winner_TMP.enabled = true;
+            lastFightOutcome = "hero";
             StartCoroutine(MyCoroutine());
         }
     }
@@ -128,6 +127,13 @@ public class fightController : MonoBehaviour
     IEnumerator MyCoroutine()
     {
         yield return new WaitForSeconds(3f);
+        if (heroHitPoints <= 0)
+        {
+            MySingleton.orbCount = 0;
+            MySingleton.theDungeon = MySingleton.generateDungeon();
+            EditorSceneManager.LoadScene("DungeonRoom");
+        }
+
         heroHitPoints = 10;
         monsterHitPoints = 10;
         EditorSceneManager.LoadScene("DungeonRoom");

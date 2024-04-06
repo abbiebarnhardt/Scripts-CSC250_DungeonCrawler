@@ -7,6 +7,9 @@ public class MySingleton
     public static string currentDirection = "?";
     public static Player thePlayer;
     public static Dungeon theDungeon = MySingleton.generateDungeon();
+    public static int orbCount = 0;
+    public static string pelletHitName;
+    public static string pelletHitDirection;
 
     public static string flipDirection(string direction)
     {
@@ -33,7 +36,7 @@ public class MySingleton
         }
     }
 
-    private static Dungeon generateDungeon()
+    public static Dungeon generateDungeon()
     {
         Room r1 = new Room("R1");
         Room r2 = new Room("R2");

@@ -6,7 +6,7 @@ using UnityEngine;
 public class Dungeon
 {
     private string name;
-    private Room startRoom;
+    public Room startRoom;
     private Room currentRoom;
     private Player thePlayer;
 
@@ -25,4 +25,11 @@ public class Dungeon
         this.thePlayer = thePlayer;
         this.startRoom.addPlayer(this.thePlayer);
     }
+
+    public Room getStartRoom()
+    {
+        return startRoom;
+    }
+
+
 }

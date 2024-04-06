@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.SceneManagement;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,6 +15,10 @@ public class PlayerController : MonoBehaviour
     private bool amMoving = false;
     private bool amAtMiddleOfRoom = false;
     public GameObject playerObject;
+    public TextMeshProUGUI orbCountText;
+    public GameObject northPellet, southPellet, eastPellet, westPellet;
+
+
 
     private void turnOffExits()
     {
@@ -32,24 +37,15 @@ public class PlayerController : MonoBehaviour
         this.westExit.gameObject.SetActive(true);
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        //Rigidbody rb = this.gameObject.GetComponent<Rigidbody>();
-
-        //disable all exits when the scene first loads
         this.turnOffExits();
-
-        //disable the middle collider until we know what our initial state will be
-        //it should already be disabled by default, but for clarity, lets do it here
+        this.setPellets();
         this.middleOfTheRoom.SetActive(false);
 
         if (!MySingleton.currentDirection.Equals("?"))
         {
-            //mark ourselves as moving since we are entering the scene through one of the exits
             this.amMoving = true;
-
-            //we will be positioning the player by one of the exits so we can turn on the middle collider
             this.middleOfTheRoom.SetActive(true);
             this.amAtMiddleOfRoom = false;
 
@@ -57,32 +53,25 @@ public class PlayerController : MonoBehaviour
             {
                 this.gameObject.transform.position = this.southExit.transform.position;
                 this.gameObject.transform.LookAt(this.northExit.transform.position);
-                //rb.MovePosition(this.southExit.transform.position);
             }
             else if (MySingleton.currentDirection.Equals("south"))
             {
                 this.gameObject.transform.position = this.northExit.transform.position;
                 this.gameObject.transform.LookAt(this.southExit.transform.position);
-                //rb.MovePosition(this.northExit.transform.position);
             }
             else if (MySingleton.currentDirection.Equals("west"))
             {
                 this.gameObject.transform.position = this.eastExit.transform.position;
                 this.gameObject.transform.LookAt(this.westExit.transform.position);
-                //rb.MovePosition(this.eastExit.transform.position);
             }
             else if (MySingleton.currentDirection.Equals("east"))
             {
                 this.gameObject.transform.position = this.westExit.transform.position;
                 this.gameObject.transform.LookAt(this.eastExit.transform.position);
-                //rb.MovePosition(this.westExit.transform.position);
             }
-            //StartCoroutine(turnOnMiddle());
         }
         else
         {
-            //We will be positioning the play at the middle
-            //so keep the middle collider off for this run of the scene
             this.amMoving = false;
             this.amAtMiddleOfRoom = true;
             this.middleOfTheRoom.SetActive(false);
@@ -90,46 +79,29 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /*
-    IEnumerator turnOnMiddle()
-    {
-        yield return new WaitForSeconds(1);
-        this.middleOfTheRoom.SetActive(true);
-        print("turned on");
-
-    }
-    */
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("door"))
         {
             print("Loading scene");
-
-            //remove the player from the current room and place him into the destination, prior to loading the new scene
             MySingleton.thePlayer.getCurrentRoom().removePlayer(MySingleton.currentDirection);
-
             EditorSceneManager.LoadScene("DungeonRoom");
         }
 
         else if (other.CompareTag("power-pellet"))
         {
+            MySingleton.pelletHitName = other.GetComponent<Collider>().gameObject.name;
+            MySingleton.pelletHitDirection = MySingleton.pelletHitName.Substring(0, MySingleton.pelletHitName.Length - 6);
             this.amMoving = false;
             MySingleton.currentDirection = "?";
             EditorSceneManager.LoadScene("FightScene");
-            other.gameObject.SetActive(false);
-            Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
-            theCurrentRoom.removePellet(other.GetComponent<pelletController>().direction);
+
         }
 
         else if (other.CompareTag("middleOfTheRoom") && !MySingleton.currentDirection.Equals("?"))
         {
-            //we have hit the middle of the room, so lets turn off the collider
-            //until the next run of the scene to avoid additional collisions
-
             this.middleOfTheRoom.SetActive(false);
             this.turnOnExits();
-
             print("middle");
             this.amAtMiddleOfRoom = true;
             this.amMoving = false;
@@ -137,9 +109,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
+        orbCountText.text = "Orb Count: " + MySingleton.orbCount.ToString();
+        if(this.gameObject.transform.position == middleOfTheRoom.transform.position && fightController.lastFightOutcome.Equals("hero"))
+        {
+            heroWonFight(MySingleton.pelletHitDirection);
+            fightController.lastFightOutcome = "";
+        }
+
+        if (this.gameObject.transform.position == middleOfTheRoom.transform.position && fightController.lastFightOutcome.Equals("hero"))
+        {
+            fightController.lastFightOutcome = "";
+        }
+
         if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving && MySingleton.thePlayer.getCurrentRoom().hasExit("north"))
         {
             this.amMoving = true;
@@ -173,7 +156,6 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        //make the player move in the current direction
         if (MySingleton.currentDirection.Equals("north"))
         {
             this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.northExit.transform.position, this.speed * Time.deltaTime);
@@ -193,5 +175,62 @@ public class PlayerController : MonoBehaviour
         {
             this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.eastExit.transform.position, this.speed * Time.deltaTime);
         }
+    }
+
+    private void setPellets()
+    {
+        Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
+        if (!theCurrentRoom.hasPellet("north"))
+        {
+            this.northPellet.SetActive(false);
+
+        }
+        if (!theCurrentRoom.hasPellet("south"))
+        {
+            this.southPellet.SetActive(false);
+        }
+
+        if (!theCurrentRoom.hasPellet("east"))
+        {
+            this.eastPellet.SetActive(false);
+        }
+
+        if (!theCurrentRoom.hasPellet("west"))
+        {
+            this.westPellet.SetActive(false);
+        }
+    }
+
+
+    public void heroWonFight(string direction)
+    {
+        if (direction.Equals("North"))
+        {
+            northPellet.SetActive(false);
+            Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
+            theCurrentRoom.removePellet(northPellet.GetComponent<pelletController>().direction);
+        }
+
+        else if (direction.Equals("South"))
+        {
+            southPellet.SetActive(false);
+            Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
+            theCurrentRoom.removePellet(southPellet.GetComponent<pelletController>().direction);
+        }
+
+        else if (direction.Equals("East"))
+        {
+            eastPellet.SetActive(false);
+            Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
+            theCurrentRoom.removePellet(eastPellet.GetComponent<pelletController>().direction);
+        }
+
+        else if (direction.Equals("west"))
+        {
+            westPellet.SetActive(false);
+            Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();
+            theCurrentRoom.removePellet(westPellet.GetComponent<pelletController>().direction);
+        }
+        MySingleton.orbCount++;
     }
 }
