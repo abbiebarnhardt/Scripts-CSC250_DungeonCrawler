@@ -17,6 +17,9 @@ public class PlayerController : MonoBehaviour
     public GameObject playerObject;
     public TextMeshProUGUI orbCountText;
     public GameObject northPellet, southPellet, eastPellet, westPellet;
+    public GameObject shopKeeper;
+    public GameObject shopSpot;
+    public bool amAtShop = false;
 
 
 
@@ -39,6 +42,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        this.shopKeeper.SetActive(false);
         this.turnOffExits();
         this.setPellets();
         this.middleOfTheRoom.SetActive(false);
@@ -68,6 +72,11 @@ public class PlayerController : MonoBehaviour
             {
                 this.gameObject.transform.position = this.westExit.transform.position;
                 this.gameObject.transform.LookAt(this.eastExit.transform.position);
+            }
+            else if (MySingleton.currentDirection.Equals("shop"))
+            {
+                this.gameObject.transform.position = this.shopKeeper.transform.position;
+                this.gameObject.transform.LookAt(this.shopKeeper.transform.position);
             }
         }
         else
@@ -107,20 +116,37 @@ public class PlayerController : MonoBehaviour
             this.amMoving = false;
             MySingleton.currentDirection = "middle";
         }
+
+        else if (other.CompareTag("shopSpot"))
+        {
+            print("shop");
+            MySingleton.currentDirection = "?";
+            amAtShop = true;
+            this.amMoving = false;
+        }
     }
 
     void Update()
     {
         orbCountText.text = "Orb Count: " + MySingleton.orbCount.ToString();
-        if(this.gameObject.transform.position == middleOfTheRoom.transform.position && fightController.lastFightOutcome.Equals("hero"))
+        if (fightController.lastFightOutcome.Equals("hero"))
         {
             heroWonFight(MySingleton.pelletHitDirection);
             fightController.lastFightOutcome = "";
         }
 
-        if (this.gameObject.transform.position == middleOfTheRoom.transform.position && fightController.lastFightOutcome.Equals("hero"))
+        else if (fightController.lastFightOutcome.Equals("monster"))
         {
             fightController.lastFightOutcome = "";
+        }
+
+        if (Input.GetKeyUp(KeyCode.A) && !this.amMoving)
+        {
+            this.shopKeeper.SetActive(true);
+            this.amMoving = true;
+            this.turnOnExits();
+            MySingleton.currentDirection = "shop";
+            this.gameObject.transform.LookAt(this.shopKeeper.transform.position);
         }
 
         if (Input.GetKeyUp(KeyCode.UpArrow) && !this.amMoving && MySingleton.thePlayer.getCurrentRoom().hasExit("north"))
@@ -153,7 +179,11 @@ public class PlayerController : MonoBehaviour
             this.turnOnExits();
             MySingleton.currentDirection = "east";
             this.gameObject.transform.LookAt(this.eastExit.transform.position);
+        }
 
+        if (MySingleton.currentDirection.Equals("shop"))
+        {
+            this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.shopSpot.transform.position, this.speed * Time.deltaTime);
         }
 
         if (MySingleton.currentDirection.Equals("north"))
@@ -174,6 +204,29 @@ public class PlayerController : MonoBehaviour
         if (MySingleton.currentDirection.Equals("east"))
         {
             this.gameObject.transform.position = Vector3.MoveTowards(this.gameObject.transform.position, this.eastExit.transform.position, this.speed * Time.deltaTime);
+        }
+
+        if (Input.GetKeyUp(KeyCode.Y) && amAtShop)
+        {
+            if (MySingleton.orbCount >= 1)
+            {
+                MySingleton.orbCount--;
+                MySingleton.heroMaxHitPoints = MySingleton.heroMaxHitPoints + 2;
+                print("Transaction Complete");
+                amAtShop = false;
+            }
+
+            else
+            {
+                print("Sorry, incomplete payment! Try again after winnning a fight");
+                amAtShop = false;
+            }
+        }
+
+        if (Input.GetKeyUp(KeyCode.N) && amAtShop)
+        {
+            print("Come back later and keep exploring");
+            amAtShop = false;
         }
     }
 
@@ -204,6 +257,7 @@ public class PlayerController : MonoBehaviour
 
     public void heroWonFight(string direction)
     {
+        print(direction);
         if (direction.Equals("North"))
         {
             northPellet.SetActive(false);
@@ -225,7 +279,7 @@ public class PlayerController : MonoBehaviour
             theCurrentRoom.removePellet(eastPellet.GetComponent<pelletController>().direction);
         }
 
-        else if (direction.Equals("west"))
+        else if (direction.Equals("West"))
         {
             westPellet.SetActive(false);
             Room theCurrentRoom = MySingleton.thePlayer.getCurrentRoom();

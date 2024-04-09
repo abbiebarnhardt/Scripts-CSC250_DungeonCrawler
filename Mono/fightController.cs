@@ -8,8 +8,8 @@ public class fightController : MonoBehaviour
 {
     public GameObject hero_GO, monster_GO, fightSpot, heroSpot, monsterSpot;
     public TextMeshProUGUI hero_hp_TMP, monster_hp_TMP, winner_TMP, commentary_TMP;
-    private int heroHitPoints = 10;
-    private static int monsterHitPoints = 10;
+    private int heroHitPoints = MySingleton.heroMaxHitPoints;
+    private static int monsterHitPoints = MySingleton.monsterMaxHitPoints;
     private int heroRoll, monsterRoll;
     private int turn = 0; // even is hero, odd is monster
     private string stringTurn;
@@ -134,8 +134,8 @@ public class fightController : MonoBehaviour
             EditorSceneManager.LoadScene("DungeonRoom");
         }
 
-        heroHitPoints = 10;
-        monsterHitPoints = 10;
+        heroHitPoints = MySingleton.heroMaxHitPoints;
+        monsterHitPoints = MySingleton.monsterMaxHitPoints;
         EditorSceneManager.LoadScene("DungeonRoom");
     }
 

@@ -10,6 +10,8 @@ public class MySingleton
     public static int orbCount = 0;
     public static string pelletHitName;
     public static string pelletHitDirection;
+    public static int heroMaxHitPoints = 10;
+    public static int monsterMaxHitPoints = 10;
 
     public static string flipDirection(string direction)
     {
