@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,138 +7,149 @@ using UnityEditor.SceneManagement;
 
 public class fightController : MonoBehaviour
 {
-    public GameObject hero_GO, monster_GO, fightSpot, heroSpot, monsterSpot;
-    public TextMeshProUGUI hero_hp_TMP, monster_hp_TMP, winner_TMP, commentary_TMP;
-    private int heroHitPoints = MySingleton.heroMaxHitPoints;
-    private static int monsterHitPoints = MySingleton.monsterMaxHitPoints;
-    private int heroRoll, monsterRoll;
-    private int turn = 0; // even is hero, odd is monster
-    private string stringTurn;
-    public static string lastFightOutcome = "";
+    private bool isFightOver = false;
+    public GameObject hero_GO, monster_GO;
+    public TextMeshProUGUI hero_hp_TMP, monster_hp_TMP;
+    private GameObject currentAttacker;
+    private Animator theCurrentAnimator;
+    private Monster theMonster;
+    private bool shouldAttack = true;
+    public TextMeshProUGUI fightCommentaryTMP;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        setHPText();
-        winner_TMP.enabled = false;
-        commentary_TMP.enabled = true;
+        this.fightCommentaryTMP.text = "";
+        this.theMonster = new Monster("Pink Ghost");
+        this.hero_hp_TMP.text = "Current HP: " + MySingleton.thePlayer.getHP() + " AC: " + MySingleton.thePlayer.getAC();
+        this.monster_hp_TMP.text = "Current HP: " + this.theMonster.getHP() + " AC: " + this.theMonster.getAC();
+
+        int num = Random.Range(0, 2); //coin flip, will produce 0 and 1 (since 2 is not included)
+        if (num == 0)
+        {
+            this.currentAttacker = hero_GO;
+        }
+        else
+        {
+            this.currentAttacker = monster_GO;
+        }
+
+        StartCoroutine(fight());
+    }
+
+    private void tryAttack(Inhabitant attacker, Inhabitant defender)
+    {
+        StartCoroutine(MoveAndReturn());
+        this.fightCommentaryTMP.text = "";
+        //have attacker try to attack the defender
+        int attackRoll = Random.Range(0, 20) + 1;
+        if (attackRoll >= defender.getAC())
+        {
+            //attacker will hit the defender, lets see how hard!!!!
+            int damageRoll = Random.Range(0, 4) + 2; //damage between 2 and 5
+            this.fightCommentaryTMP.color = Color.red;
+            this.fightCommentaryTMP.text = "Attack hits for " + damageRoll;
+            defender.takeDamage(damageRoll);
+        }
+        else
+        {
+            this.fightCommentaryTMP.color = Color.blue;
+            this.fightCommentaryTMP.text = "Attack Misses!!!";
+        }
+    }
+
+    IEnumerator MoveAndReturn()
+    {
+        float moveDistance = 2.0f;
+        float delay = 0.3f;
+        Vector3 originalPosition = this.currentAttacker.transform.position;
+
+        if (this.currentAttacker == this.monster_GO)
+        {
+            moveDistance *= -1;
+        }
+        // Move the GameObject to the left by 2 units
+        this.currentAttacker.transform.position = new Vector3(this.currentAttacker.transform.position.x - moveDistance, this.currentAttacker.transform.position.y, this.currentAttacker.transform.position.z);
+
+        // Wait for 0.2 seconds
+        yield return new WaitForSeconds(delay);
+
+        // Move the GameObject back to its original position
+        this.currentAttacker.transform.position = originalPosition;
+
+        if (this.currentAttacker == this.monster_GO)
+        {
+            this.currentAttacker = this.hero_GO;
+        }
+        else
+        {
+            this.currentAttacker = this.monster_GO;
+        }
+    }
+
+    IEnumerator fight()
+    {
+        if (this.shouldAttack)
+        {
+            this.theCurrentAnimator = this.currentAttacker.GetComponent<Animator>();
+            //this.theCurrentAnimator.SetTrigger("attack");
+            //this.hero_GO.transform.Translate(new Vector3(10, 0, 0));
+            if (this.currentAttacker == this.hero_GO)
+            {
+                this.tryAttack(MySingleton.thePlayer, this.theMonster);
+                this.monster_hp_TMP.text = "Monster Current HP: " + this.theMonster.getHP() + " AC: " + this.theMonster.getAC();
+
+                //now the defender may have fewer hp...check if their are dead?
+                if (this.theMonster.getHP() <= 0)
+                {
+                    this.monster_GO.transform.Rotate(-90, 0, 0);
+                    this.fightCommentaryTMP.text = "Hero Wins!!!";
+                    MySingleton.currentPellets++;
+                    this.isFightOver = true;
+
+                    this.shouldAttack = false;
+                }
+                else
+                {
+                    yield return new WaitForSeconds(0.75f);
+                    StartCoroutine(fight());
+                }
+
+            }
+            else
+            {
+                this.tryAttack(this.theMonster, MySingleton.thePlayer);
+                this.hero_hp_TMP.text = "Hero Current HP: " + MySingleton.thePlayer.getHP() + " AC: " + MySingleton.thePlayer.getAC();
+
+                //now the defender may have fewer hp...check if their are dead?
+                if (MySingleton.thePlayer.getHP() <= 0)
+                {
+                    this.hero_GO.transform.Rotate(-90, 0, 0);
+                    this.fightCommentaryTMP.text = "Monster Wins!!!!!";
+                    this.isFightOver = true;
+                    this.shouldAttack = false;
+                }
+                else
+                {
+                    yield return new WaitForSeconds(0.75f);
+                    StartCoroutine(fight());
+                }
+            }
+        }
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        hero_GO.SetActive(true);
-        monster_GO.SetActive(true);
-        winner_TMP.enabled = false;
-
-        if (heroHitPoints > 0 && monsterHitPoints > 0)
+        if (isFightOver && Input.GetKeyUp(KeyCode.Space)) //when the fight is finally over
         {
-            if (turn % 2 == 0)
-            {
-                stringTurn = "hero";
-
-                commentary_TMP.text = "It's the hero's turn...";
-
-                if (hero_GO.transform.position != fightSpot.transform.position)
-                {
-                    hero_GO.transform.position = Vector3.MoveTowards(hero_GO.transform.position, fightSpot.transform.position, 10f * Time.deltaTime);
-                }
-                else if (hero_GO.transform.position == fightSpot.transform.position)
-                {
-                    hit(stringTurn);
-                    turn++;
-                    hero_GO.transform.position = heroSpot.transform.position;
-                    setHPText();
-                }
-            }
-
-            if (turn % 2 == 1)
-            {
-                stringTurn = "monster";
-
-                commentary_TMP.text = "It's the monster's turn...";
-
-                if (monster_GO.transform.position != fightSpot.transform.position)
-                {
-                    monster_GO.transform.position = Vector3.MoveTowards(monster_GO.transform.position, fightSpot.transform.position, 10f * Time.deltaTime);
-                }
-
-                else
-                {
-                    hit(stringTurn);
-                    turn++;
-                    monster_GO.transform.position = monsterSpot.transform.position;
-                    setHPText();
-                }
-            }
-
-        }
-
-        else if (heroHitPoints <= 0)
-        {
-            commentary_TMP.enabled = false;
-            hero_GO.SetActive(false);
-            winner_TMP.text = "The monster wins!";
-            winner_TMP.enabled = true;
-            lastFightOutcome = "monster";
-            StartCoroutine(MyCoroutine());
-        }
-
-        else if (monsterHitPoints <= 0)
-        {
-            commentary_TMP.enabled = false;
-            monster_GO.SetActive(false);
-            winner_TMP.text = "The hero wins!";
-            winner_TMP.enabled = true;
-            lastFightOutcome = "hero";
-            StartCoroutine(MyCoroutine());
-        }
-    }
-
-
-    private void hit(string attackingPlayer)
-    {
-        heroRoll = Random.Range(1, 20);
-        monsterRoll = Random.Range(1, 20);
-
-        if (heroRoll > monsterRoll && attackingPlayer.Equals("hero"))
-        {
-            monsterHitPoints = monsterHitPoints - Random.Range(1, 6);
-            commentary_TMP.text = "The hero hit the monster!";
-        }
-
-        else if (heroRoll < monsterRoll && attackingPlayer.Equals("monster"))
-        {
-            heroHitPoints = heroHitPoints - Random.Range(1, 6);
-            commentary_TMP.text = "The monster hit the hero!";
-        }
-        else
-        {
-            commentary_TMP.text = "The hit misses!";
-        }
-    }
-
-    private void setHPText()
-    {
-        hero_hp_TMP.text = "Hero Hit Points: " + heroHitPoints.ToString();
-        monster_hp_TMP.text = "Monster Hit Points: " + monsterHitPoints.ToString();
-    }
-
-    IEnumerator MyCoroutine()
-    {
-        yield return new WaitForSeconds(3f);
-        if (heroHitPoints <= 0)
-        {
-            MySingleton.orbCount = 0;
-            MySingleton.theDungeon = MySingleton.generateDungeon();
+            //we want to go back to the dungeon scene
+            MySingleton.thePlayer.resetStats(); //give the player their hp back
+            MySingleton.currentDirection = "?";
             EditorSceneManager.LoadScene("DungeonRoom");
         }
 
-        heroHitPoints = MySingleton.heroMaxHitPoints;
-        monsterHitPoints = MySingleton.monsterMaxHitPoints;
-        EditorSceneManager.LoadScene("DungeonRoom");
     }
-
-
 }
