@@ -1,13 +1,50 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
+using System;
 
 public class MySingleton
 {
-    public static int currentPellets = 0;
+    public static int currentPellets = 10; //Set this back to ZERO for normal game play
     public static string currentDirection = "?";
     public static Player thePlayer;
     public static Dungeon theDungeon = MySingleton.generateDungeon();
+
+    public static string readJsonString()
+    {
+        string filePath = "Assets/Data Files/items_data_json.txt"; // Path to the file
+        string answer = "";
+
+        // Check if the file exists
+        if (File.Exists(filePath))
+        {
+            try
+            {
+                // Open the file to read from
+                using (StreamReader reader = new StreamReader(filePath))
+                {
+                    string line;
+                    // Read and display lines from the file until the end of the file is reached
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        answer = answer + line;
+                    }
+                    return answer;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Display any errors that occurred during reading the file
+
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
 
     public static string flipDirection(string direction)
     {
