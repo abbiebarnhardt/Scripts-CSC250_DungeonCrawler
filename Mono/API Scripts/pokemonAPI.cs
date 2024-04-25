@@ -41,9 +41,4 @@ public class pokemonAPI : MonoBehaviour
             }
         }
     }
-
-    public static void wasteTime()
-    {
-        return;
-    }
 }
